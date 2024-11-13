@@ -1,52 +1,40 @@
-name: Deploy to Argo CD
+name: Build and Deploy C Application with Argo CD
 
 on:
   push:
     branches:
-      - main  # Deploy only on changes to the main branch
+      - main
   pull_request:
     branches:
-      - main  # Run on pull requests to main branch
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'  # Use the version appropriate for your project
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          npm install  # Install dependencies for JavaScript/Node.js projects
+          sudo apt-get update
+          sudo apt-get install -y gcc make  # Install GCC and Make if using a Makefile
+
+      - name: Build the application
+        run: |
+          make || gcc -o my_app main.c  # If you have a Makefile, it will use it; otherwise, it compiles `main.c`
 
       - name: Run Unit Tests
         run: |
-          npm test  # Run tests defined in package.json
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt  # Install dependencies for Python projects
-
-      - name: Run Python Tests
-        run: |
-          pytest  # Run Python tests using pytest
+          ./tests/test_suite  # Adjust this to your test suite's name and path
+        continue-on-error: false  # Ensures the job fails if the test fails
 
   deploy:
     runs-on: ubuntu-latest
     needs: test  # Only runs if the test job succeeds
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Argo CD CLI
         run: |
@@ -62,10 +50,8 @@ jobs:
 
       - name: Sync Argo CD Application
         run: |
-          # Replace "my-app" with your Argo CD application name
-          argocd app sync my-app
+          argocd app sync my-app || exit 1  # Replace "my-app" with your Argo CD app name
 
       - name: Wait for Argo CD App to Sync
         run: |
-          # Replace "my-app" with your Argo CD application name
-          argocd app wait my-app --sync
+          argocd app wait my-app --sync || exit 1
