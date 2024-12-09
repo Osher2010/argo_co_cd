@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: MyApp
+  name: myapp
   namespace: argocd
   labels:
     app: argocd
@@ -9,14 +9,14 @@ spec:
   replicas: 3  
   selector:
     matchLabels:
-      app:  Myapp
+      app:  myapp
   template:
     metadata:
       labels:
-        app: MyApp
+        app: myApp
     spec:
       containers:
-        - name: Myapp
+        - name: myapp
           image: Nginx  
           ports:
             - containerPort: 80
@@ -46,12 +46,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: MyApp
+  name: myapp
   labels:
-    app: MyApp
+    app: myapp
 spec:
   selector:
-    app: MyApp
+    app: myapp
   ports:
     - port: 80
       targetPort: 80
