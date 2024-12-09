@@ -25,7 +25,7 @@ metadata:
   labels:
     app: argocd
 spec:
-  replicas: 3  # Set based on production load requirements
+  replicas: 3  
   selector:
     matchLabels:
       app:  Myapp
@@ -36,13 +36,13 @@ spec:
     spec:
       containers:
         - name: Myapp
-          image: OsherAPP  # Specify the production-ready image
+          image: OsherAPP  
           ports:
             - containerPort: 80
           env:
             - name: ENV
-              value: "production"  # Set production-specific environment variables
-          resources:  # Configure resources for production
+              value: "production"  
+          resources:  
             limits:
               cpu: "500m"
               memory: "512Mi"
@@ -76,4 +76,4 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
-  type: LoadBalancer  # Use LoadBalancer for external access
+  type: LoadBalancer 
