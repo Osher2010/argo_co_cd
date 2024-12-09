@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: MyApp
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/Osher2010/argo_co_cd.git'
+    targetRevision: HEAD
+    path: .
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: <NAMESPACE>
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: MyApp
+  namespace: argocd
+  labels:
+    app: argocd
+spec:
+  replicas: 3  # Set based on production load requirements
+  selector:
+    matchLabels:
+      app:  Myapp
+  template:
+    metadata:
+      labels:
+        app: MyApp
+    spec:
+      containers:
+        - name: Myapp
+          image: OsherAPP  # Specify the production-ready image
+          ports:
+            - containerPort: 80
+          env:
+            - name: ENV
+              value: "production"  # Set production-specific environment variables
+          resources:  # Configure resources for production
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: MyApp
+  namespace: <NAMESPACE>
+  labels:
+    app: MyApp
+spec:
+  selector:
+    app: MyApp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer  # Use LoadBalancer for external access
